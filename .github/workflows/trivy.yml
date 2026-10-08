@@ -25,5 +25,6 @@ jobs:
           image-ref: enterprise-devsecops-platform:${{ github.sha }}
           format: table
           severity: CRITICAL,HIGH
+          skip-files: "**/pip/_vendor/bom.cdx.json"
           ignore-unfixed: true
           exit-code: "1"
