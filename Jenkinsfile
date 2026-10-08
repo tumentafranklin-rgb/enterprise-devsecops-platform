@@ -13,6 +13,12 @@ pipeline {
             }
         }
 
+        stage("Secret Scan - Gitleaks") {
+            steps {
+                sh "gitleaks detect --source . --verbose"
+            }
+        }
+
         stage("Build Docker Image") {
             steps {
                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
