@@ -21,7 +21,7 @@ pipeline {
 
         stage("SAST - Semgrep") {
             steps {
-                sh "rm -rf .semgrep-scan && mkdir .semgrep-scan && git archive HEAD | tar -x -C .semgrep-scan && docker run --rm -v \"$PWD/.semgrep-scan:/src:ro\" semgrep/semgrep semgrep scan --config auto --error /src; rm -rf .semgrep-scan"
+                sh "rm -rf .semgrep-scan && mkdir .semgrep-scan && git archive HEAD | tar -x -C .semgrep-scan && docker run --rm -v \"${WORKSPACE}/.semgrep-scan:/src:ro\" semgrep/semgrep semgrep scan --config auto --error /src; rm -rf .semgrep-scan"
             }
         }
 
