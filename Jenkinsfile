@@ -19,6 +19,12 @@ pipeline {
             }
         }
 
+        stage("SAST - Semgrep") {
+            steps {
+                sh "docker run --rm -v \"$PWD:/src\" semgrep/semgrep semgrep scan --config auto --error /src"
+            }
+        }
+
         stage("Build Docker Image") {
             steps {
                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
