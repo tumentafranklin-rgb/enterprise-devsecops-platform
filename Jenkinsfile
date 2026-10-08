@@ -31,6 +31,12 @@ pipeline {
             }
         }
 
+        stage("Container Scan - Trivy") {
+            steps {
+                sh "trivy image --scanners vuln --severity CRITICAL --exit-code 1 ${IMAGE_NAME}:${IMAGE_TAG}"
+            }
+        }
+
         stage("Test Container") {
             steps {
                 sh "docker run -d --name ${IMAGE_NAME}-test-${BUILD_NUMBER} -p 18000:8000 ${IMAGE_NAME}:${IMAGE_TAG}"
