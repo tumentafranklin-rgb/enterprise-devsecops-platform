@@ -4,6 +4,9 @@ pipeline {
     environment {
         IMAGE_NAME = "enterprise-devsecops-platform"
         IMAGE_TAG = "${BUILD_NUMBER}"
+        AWS_REGION = "us-east-1"
+        ECR_REGISTRY = "126309364316.dkr.ecr.us-east-1.amazonaws.com"
+        ECR_REPOSITORY = "aws-cicd-pipeline"
     }
 
     stages {
@@ -44,12 +47,21 @@ pipeline {
                 sh "curl --fail http://localhost:18000/health"
             }
         }
+
+        stage("Push Image to ECR") {
+            steps {
+                sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+                sh "docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+            }
+        }
     }
 
     post {
         always {
             sh "docker rm -f ${IMAGE_NAME}-test-${BUILD_NUMBER} || true"
             sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+            sh "docker rmi ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG} || true"
         }
     }
 }
