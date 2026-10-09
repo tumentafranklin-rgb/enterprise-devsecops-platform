@@ -29,6 +29,7 @@ pipeline {
                 sh '''
                     rm -rf .semgrep-scan
                     mkdir .semgrep-scan
+
                     git archive HEAD | tar -x -C .semgrep-scan
 
                     docker run --rm \
@@ -95,60 +96,9 @@ pipeline {
                     echo "Starting EC2 deployment..."
                     echo "Deploying image tag: ${IMAGE_TAG}"
 
-                    COMMAND_ID=$(aws ssm send-command \
-                      --region ${AWS_REGION} \
-                      --document-name AWS-RunShellScript \
-                      --instance-ids ${EC2_INSTANCE_ID} \
-                      --parameters "{\"commands\":[\"set -e\",\"echo Starting deployment on EC2\",\"aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 126309364316.dkr.ecr.us-east-1.amazonaws.com\",\"docker pull 126309364316.dkr.ecr.us-east-1.amazonaws.com/aws-cicd-pipeline:${IMAGE_TAG}\",\"docker stop enterprise-devsecops-api || true\",\"docker rm enterprise-devsecops-api || true\",\"docker run -d --restart unless-stopped --name enterprise-devsecops-api -p 8000:8000 126309364316.dkr.ecr.us-east-1.amazonaws.com/aws-cicd-pipeline:${IMAGE_TAG}\",\"sleep 5\",\"curl --fail http://localhost:8000/health\",\"echo Deployment completed successfully\"]}" \
-                      --query 'Command.CommandId' \
-                      --output text)
+                    chmod +x deploy-ec2.sh
 
-                    echo "SSM Command ID: ${COMMAND_ID}"
-
-                    for i in $(seq 1 20); do
-
-                        STATUS=$(aws ssm get-command-invocation \
-                          --region ${AWS_REGION} \
-                          --command-id "${COMMAND_ID}" \
-                          --instance-id ${EC2_INSTANCE_ID} \
-                          --query 'Status' \
-                          --output text)
-
-                        echo "SSM deployment status: ${STATUS}"
-
-                        if [ "${STATUS}" = "Success" ]; then
-
-                            aws ssm get-command-invocation \
-                              --region ${AWS_REGION} \
-                              --command-id "${COMMAND_ID}" \
-                              --instance-id ${EC2_INSTANCE_ID} \
-                              --query '{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}' \
-                              --output json
-
-                            echo "EC2 deployment successful."
-                            exit 0
-                        fi
-
-                        if [ "${STATUS}" = "Failed" ] || \
-                           [ "${STATUS}" = "Cancelled" ] || \
-                           [ "${STATUS}" = "TimedOut" ]; then
-
-                            aws ssm get-command-invocation \
-                              --region ${AWS_REGION} \
-                              --command-id "${COMMAND_ID}" \
-                              --instance-id ${EC2_INSTANCE_ID} \
-                              --query '{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}' \
-                              --output json
-
-                            echo "EC2 deployment failed."
-                            exit 1
-                        fi
-
-                        sleep 3
-                    done
-
-                    echo "SSM deployment timed out."
-                    exit 1
+                    ./deploy-ec2.sh "${IMAGE_TAG}"
                 '''
             }
         }
