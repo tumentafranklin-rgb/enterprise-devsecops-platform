@@ -4,21 +4,21 @@ This diagram illustrates the CI/CD pipeline implemented in this project.
 
 ```mermaid
 flowchart TD
-    A[Developer] --> B[GitHub Repository]
-    B --> C[Jenkins CI/CD Pipeline]
+    A["Developer"] --> B["GitHub Repository"]
+    B --> C["Jenkins CI/CD Pipeline"]
 
-    C --> D[Gitleaks<br/>Secret Scanning]
-    D --> E[Semgrep<br/>Static Analysis]
-    E --> F[Docker Image Build]
-    F --> G[Trivy<br/>Vulnerability Scanning]
-    G --> H[Container Health Test]
-    H --> I[Amazon ECR]
+    C --> D["Gitleaks: Secret Scanning"]
+    D --> E["Semgrep: Static Analysis"]
+    E --> F["Docker Image Build"]
+    F --> G["Trivy: Vulnerability Scanning"]
+    G --> H["Container Health Test"]
+    H --> I["Amazon ECR"]
 
-    I --> J[AWS Systems Manager]
-    J --> K[Amazon EC2]
-    K --> L[Docker Container]
-    L --> M[FastAPI Application]
-    M --> N[/health Endpoint]
+    I --> J["AWS Systems Manager"]
+    J --> K["Amazon EC2"]
+    K --> L["Docker Container"]
+    L --> M["FastAPI Application"]
+    M --> N["Health Endpoint: /health"]
 
     classDef source fill:#dbeafe,stroke:#2563eb,color:#111827
     classDef security fill:#fef3c7,stroke:#d97706,color:#111827
